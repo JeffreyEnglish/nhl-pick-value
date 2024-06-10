@@ -1,0 +1,17 @@
+{
+    "plot_bgcolor": "#303030", 
+    "paper_bgcolor": "#303030",  
+    "font": {
+        "color": "#ffffff" 
+    },
+    "xaxis": {
+        "gridcolor": "#4f4f4f",  
+        "zerolinecolor": "#4f4f4f",
+        "color": "#ffffff" 
+    },
+    "yaxis": {
+        "gridcolor": "#4f4f4f",
+        "zerolinecolor": "#4f4f4f",
+        "color": "#ffffff" 
+    }
+}

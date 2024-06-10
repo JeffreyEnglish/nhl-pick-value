@@ -1,0 +1,17 @@
+body {
+    background-color: #2d2d2d; /* Matches the DARKLY theme background color */
+    color: white; /* Ensures text color is white for better contrast */
+}
+
+.custom-container {
+    background-color: #2d2d2d; /* Matches the DARKLY theme background color */
+    color: white; /* Ensures text color is white for better contrast */
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.table-container-row {
+    height: 1000px; /* Adjust the height as needed */
+    padding: 10px; /* Adjust the padding as needed */
+    margin: 0; /* Adjust the margin as needed */
+}
