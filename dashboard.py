@@ -8,7 +8,7 @@ import json, copy
 import pandas as pd
 
 # Initialize the app with the dark theme
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, "assets/styles.css"])
 
 # Common layout properties for dark theme
 common_layout = json.load(open("assets/layout.json","r"))
@@ -16,6 +16,7 @@ common_layout = json.load(open("assets/layout.json","r"))
 # Load data
 data = pd.read_csv("data/player_seasons.csv", parse_dates=False)
 data['Season'] = data['Season'].astype(str)
+pick_data = pd.read_csv("data/pick_probabilities.csv", parse_dates=False)
 
 # === Create figures
 # == Pick value summation
@@ -83,6 +84,28 @@ fig4 = px.line(fig4_data,
                )
 fig4.update_layout(common_layout)
 
+# Probability of becoming an NHLer
+top_right_legend = dict(xanchor='right',yanchor='top',bgcolor='rgba(0,0,0,0.05)')
+fig5_data = pick_data.loc[pick_data['Years After Draft'].isin([0,1,3,7,10])]
+fig5 = px.line(fig5_data,
+               x='Pick', y='NHL Probability', color='Years After Draft',
+               title="Probability of Playing 21 Games or More",
+               color_discrete_sequence=px.colors.sequential.Emrld,
+               )
+fig5.update_layout(common_layout)
+fig5.update_layout({'legend':top_right_legend})
+fig5.update_yaxes(range=[0,1])
+
+# Probability of becoming an NHLer
+fig6 = px.line(fig5_data,
+               x='Pick', y='Star Probability', color='Years After Draft',
+               title="Probability of Having 6 PS or More in a Season",
+               color_discrete_sequence=px.colors.sequential.Emrld,
+               )
+fig6.update_layout(common_layout)
+fig6.update_layout({'legend':top_right_legend})
+fig6.update_yaxes(range=[0,1])
+
 # Define the layout with Tabs
 app.layout = dbc.Container(
     [
@@ -98,7 +121,12 @@ app.layout = dbc.Container(
                         dbc.Row([
                             dbc.Col(dcc.Markdown("This figure shows the average expected value for a pick in each round by year after the draft. First round picks peak in year 6 while later picks can take longer."), md=4),
                             dbc.Col(dcc.Graph(figure=fig2), md=8),
-                        ])
+                        ]),
+                        dbc.Row([
+                            dbc.Col(dcc.Graph(figure=fig5), md=4),
+                            dbc.Col(dcc.Graph(figure=fig6), md=4),
+                            dbc.Col(dcc.Markdown("This shows the probability of a pick resulting in an NHL player (defined as someone who plays 21 games or more in a season) and a star player (defined as someone with 6 point shares or more in a season - roughly 20 players a year meet this criteria) for each pick. \n\nLate first round picks have only a ~50% of being a regular player during their RFA period. Star player probabilities drop more sharply and are less than 50% outside the top 3 picks."), md=3),
+                        ]),                        
                     ],
                     label="Pick Value",
                     ),
@@ -165,6 +193,32 @@ app.layout = dbc.Container(
                     ],
                     label="Player Comparison",
                 ),
+
+                # Tab explaining the content
+                dbc.Tab(
+                    [
+                        dbc.Row([
+                            dbc.Col([
+                                dcc.Markdown("""This dashboard shows statistics related to the expected value of skaters drafted into the NHL. 
+                                             Source data is taken from Atathead and includes every skater drafted since 2007 that played at least one NHL game. 
+                                             I'd like to go back further but lately Stathead has had errors when including draft status in a search.\n\n"""),
+                                dcc.Markdown("""For now it does not include goalies or skaters that never played an NHL game. These picks are given zero value
+                                             in the estimations. This isn't completely accurate, but the number of goalies drafted is low enough to not have a huge impact.
+                                             It does mean we can't use this data to make inferences on which teams draft and develop well so I will work on adding the missing data in a future update.\n\n"""),
+                                dcc.Markdown("""Expected pick value is estimated using a multiple kernel regression model smoothing over pick number and years since drafted. 
+                                             This smoothing avoid spikiness caused by individual standout players, particularly in later rounds.
+                                             For high draft picks I use a Gaussian kernel with a bandwidth of 3 picks and 1 year, for low draft picks the kernel is Gaussian with a bandwidth of 32 picks and 1 year.
+                                             The two estimates are interpolated between the 1st and 64th overall picks such that the 32nd overall pick is halfway between the two predictions."""), 
+                                dcc.Markdown("""This site was made using Plotly Dash hosted on AWS Elastic Beanstalk. Analysis was performed using the Python packages *statsmodels* and *scikit-learn*."""), 
+
+                                ],
+                                md=7)
+                            ], 
+                            justify="center",
+                            )
+                    ],
+                    label="About",
+                ),
             ]
         )
     ],
@@ -214,5 +268,6 @@ def update_player_comparison_figure(player_a, player_b):
     fig.update_layout(common_layout)
     return fig
 
+server = app.server
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, host='0.0.0.0')

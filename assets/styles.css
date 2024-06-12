@@ -10,6 +10,9 @@ body {
     border-radius: 5px;
 }
 
+.row {
+    padding: 10px;
+}
 .table-container-row {
     height: 1000px; /* Adjust the height as needed */
     padding: 10px; /* Adjust the padding as needed */
